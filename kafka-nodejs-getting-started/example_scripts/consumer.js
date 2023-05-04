@@ -41,7 +41,7 @@ async function consumerExample() {
   }
   let configPath = process.argv.slice(2)[0];
   const config = await configFromPath(configPath);
-
+  console.log(config)
   //let seen = 0;
   let topic = "purchases";
 

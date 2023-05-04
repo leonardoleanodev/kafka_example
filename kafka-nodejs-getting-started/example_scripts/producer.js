@@ -41,6 +41,7 @@ async function produceExample() {
   }
   let configPath = process.argv.slice(2)[0];
   const config = await configFromPath(configPath);
+  console.log(config)
 
   let topic = "purchases";
 
