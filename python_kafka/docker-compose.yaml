@@ -1,0 +1,71 @@
+version: "3.7"
+services:
+  namenode:
+    image: apache/hadoop:3.3.6
+    hostname: namenode
+    command: [ "hdfs", "namenode" ]
+    ports:
+      - 9870:9870
+    env_file:
+      - ./hadoop.env
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+  datanode:
+    image: apache/hadoop:3.3.6
+    command: [ "hdfs", "datanode" ]
+    env_file:
+      - ./hadoop.env
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    hostname: resourcemanager
+    command: [ "yarn", "resourcemanager" ]
+    ports:
+      - 8088:8088
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - ./example:/opt/example
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    command: [ "yarn", "nodemanager" ]
+    env_file:
+      - ./hadoop.env
+
+  spark-master:
+    image: bitnami/spark:3.5.1
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - 8080:8080
+      - 7077:7077
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+
+  spark-worker:
+    image: bitnami/spark:3.5.1
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_MASTER_URL: spark://spark-master:7077
+    volumes:
+      - ./conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+
+  jupyter-local:
+    depends_on:
+      - spark-master
+    build: .
+    command: python -m jupyterlab --ip "0.0.0.0" --no-browser --NotebookApp.token=''
+    ports:
+      - 8888:8888
+    volumes:
+      - ./app:/app # persistent storage
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+
+volumes:
+  spark-logs:
+
+
