@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "node-rdkafka": "^2.15.0",
-    "package.json": "^2.0.1"
-  }
-}
